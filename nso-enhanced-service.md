@@ -266,4 +266,4 @@ loopback-service loo-1
 
 ## Advanced Service
 
-You can now move to the last step, the [advanced service](nso-advanced-service).
+You can now move to the last step, the [advanced service](nso-advanced-service.md).

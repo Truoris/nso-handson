@@ -534,4 +534,4 @@ syntax error: unknown argument
 
 ## Enhanced Service
 
-You can now move to the next step, the [enhanced service](nso-enhanced-service).
+You can now move to the next step, the [enhanced service](nso-enhanced-service.md).

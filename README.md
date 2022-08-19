@@ -518,4 +518,4 @@ Commit complete.
 
 For the purpose of this lab, we will create a NSO service that will provision a loopback interface on a device.
 
-We will do it step by step, starting with the [base service](nso-base-service). 
+We will do it step by step, starting with the [base service](nso-base-service.md). 
