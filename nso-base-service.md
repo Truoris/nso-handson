@@ -88,7 +88,7 @@ The type of service skeletons that may be created are:
 > Be sure to be in the packages subdirectory
 
 ```bash
-cisco@ubuntu:~/ncs-run/packages$ ncs-make-package --service-skeleton template loopback-service
+cisco@ubuntu:~/ncs-run/packages$ ncs-make-package --service-skeleton python-and-template loopback-service
 ```
 
 - Inspect the directory structure of the loopback-service folder just created
@@ -120,10 +120,9 @@ loopback-service/
 
 loopback-service.yang is the service definition in YANG and loopback-service-template.xml is the configuration template that will be applied to write configuration on devices when service is deployed.
 
-- Inspect the YANG service model
+- Inspect the YANG service model: ~/nso/ncs-run/packages/loopback-service/src/yang/loopback-service.yang
 
 ```yang
-cisco@ubuntu:~/ncs-run/packages$ cat ./loopback-service/src/yang/loopback-service.yang 
 module loopback-service {
   namespace "http://com/example/loopbackservice";
   prefix loopback-service;
@@ -139,7 +138,7 @@ module loopback-service {
     key name;
 
     uses ncs:service-data;
-    ncs:servicepoint "loopback-service";
+    ncs:servicepoint "loopback-service-servicepoint";
 
     leaf name {
       type string;
@@ -162,12 +161,10 @@ module loopback-service {
 
 loopback-service is a list with a name which is a string as well as the key of the list, a reference to a list of existing devices already on-boarded in NSO and a variable called dummy which is of type ipv4-address. For now we don't modify the service model but we edit the configuration template to use dummy input to write the IP address of the lookback on the devices referenced in the list.
 
-- inspect the configuration template file
+- inspect the configuration template file: ~/nso/ncs-run/packages/loopback-service/templates/loopback-service-template.xml
 
 ```xml
-cisco@ubuntu:~/ncs-run/packages$ cat ./loopback-service/templates/loopback-service-template.xml 
-<config-template xmlns="http://tail-f.com/ns/config/1.0"
-                 servicepoint="loopback-service">
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
   <devices xmlns="http://tail-f.com/ns/ncs">
     <device>
       <!--
@@ -217,6 +214,7 @@ NSO NEDs store the device configuration inside it’s Yang modelled database. In
 - Sync-from device simCPE0 
 
 ``` console
+cisco@ubuntu:~/ncs-run$ ncs_cli -u admin -C
 admin@ncs# devices device simCPE0 sync-from 
 result true
 ```
@@ -267,9 +265,7 @@ diff
 - Now that you have the XML output, you want to copy and paste just the bits between the config tags:
 
 ```xml
-cisco@ubuntu:~/ncs-run/packages$ cat ./loopback-service/templates/loopback-service-template.xml 
-<config-template xmlns="http://tail-f.com/ns/config/1.0"
-                 servicepoint="loopback-service">
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
   <devices xmlns="http://tail-f.com/ns/ncs">
     <device>
       <!--
@@ -298,12 +294,11 @@ cisco@ubuntu:~/ncs-run/packages$ cat ./loopback-service/templates/loopback-servi
 </config-template>
 ```
 
-- Replace the hardcoded 100 value with the `{/dummy}` variable specified in the service model
+- Replace the hardcoded ip address value with the `{/dummy}` variable specified in the service model
+ncs-run/packages/loopback-service/templates/loopback-service-template.xml
 
 ```xml
-cisco@ubuntu:~/ncs-run/packages$ cat ./loopback-service/templates/loopback-service-template.xml 
-<config-template xmlns="http://tail-f.com/ns/config/1.0"
-                 servicepoint="loopback-service">
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
   <devices xmlns="http://tail-f.com/ns/ncs">
     <device>
       <!--
@@ -368,11 +363,7 @@ admin@ncs# packages reload
 >>> No configuration changes can be performed until upgrade has completed.
 >>> System upgrade has completed successfully.
 reload-result {
-    package cisco-ios-cli-6.69
-    result true
-}
-reload-result {
-    package cisco-iosxr-cli-7.33
+    package cisco-ios-cli-6.85
     result true
 }
 reload-result {
@@ -380,11 +371,11 @@ reload-result {
     result true
 }
 admin@ncs# 
-System message at 2021-04-30 06:43:04...
-    Subsystem stopped: ncs-dp-1-cisco-ios-cli-6.69:IOSDp
+System message at 2022-08-25 09:14:34...
+    Subsystem stopped: ncs-dp-2-cisco-ios-cli-6.85:IOSDp
 admin@ncs# 
-System message at 2021-04-30 06:43:04...
-    Subsystem started: ncs-dp-2-cisco-ios-cli-6.69:IOSDp
+System message at 2022-08-25 09:14:34...
+    Subsystem started: ncs-dp-3-cisco-ios-cli-6.85:IOSDp
 ```
 
 If there is no error detected by NSO in the YANG and XML files, the package loopback-service is loaded and ready to use.
@@ -392,15 +383,14 @@ If there is no error detected by NSO in the YANG and XML files, the package loop
 > Note : The "Packages reload" command is a transactional action. In a multi-service environment, ALL packages MUST reload without error before you can test/use your service.
 
 ```
-admin@ncs# show packages package * oper-status               
-                                                                                                        PACKAGE                
-                          PROGRAM                                                                       META     FILE          
-                          CODE     JAVA           PYTHON         BAD NCS  PACKAGE  PACKAGE  CIRCULAR    DATA     LOAD   ERROR  
-NAME                  UP  ERROR    UNINITIALIZED  UNINITIALIZED  VERSION  NAME     VERSION  DEPENDENCY  ERROR    ERROR  INFO   
--------------------------------------------------------------------------------------------------------------------------------
-cisco-ios-cli-6.69    X   -        -              -              -        -        -        -           -        -      -      
-cisco-iosxr-cli-7.33  X   -        -              -              -        -        -        -           -        -      -      
-loopback-service      X   -        -              -              -        -        -        -           -        -      -    
+admin@ncs# show packages package * oper-status
+                                                                                                      PACKAGE                
+                        PROGRAM                                                                       META     FILE          
+                        CODE     JAVA           PYTHON         BAD NCS  PACKAGE  PACKAGE  CIRCULAR    DATA     LOAD   ERROR  
+NAME                UP  ERROR    UNINITIALIZED  UNINITIALIZED  VERSION  NAME     VERSION  DEPENDENCY  ERROR    ERROR  INFO   
+-----------------------------------------------------------------------------------------------------------------------------
+cisco-ios-cli-6.85  X   -        -              -              -        -        -        -           -        -      -      
+loopback-service    X   -        -              -              -        -        -        -           -        -      -  ```
 ```
 
 ---
@@ -493,6 +483,7 @@ simCPE1# exit
 - You can choose to rollback the service configuration
 
 ```console
+admin@ncs(config)# rollback configuration
 admin@ncs(config)# commit dry-run 
 cli {
     local-node {

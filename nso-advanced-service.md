@@ -12,69 +12,66 @@ The XML configuration template is updated to allow both variables defined in the
 - Examine the YANG service model and update your loopback service
 ```yang
 module loopback-service {
-  namespace "http://com/example/loopbackservice";
-  prefix loopback-service;
-
-  import ietf-inet-types {
-    prefix inet;
-  }
-  import tailf-ncs {
-    prefix ncs;
-  }
-
-
-  revision 2021-05-03 {
-    description "advanced version";
-  }
-
-  revision 2021-05-01 {
-    description "enhanced version";
-  }
-
-  revision 2021-04-23 {
-    description "Initial revision.";
-  }
+    namespace "http://com/example/loopbackservice";
+    prefix loopback-service;
+    
+    import ietf-inet-types {
+        prefix inet;
+    }
+    import tailf-ncs {
+        prefix ncs;
+    }
+    
+    revision 2021-05-03 {
+        description "advanced version";
+    }
+    
+    revision 2021-05-01 {
+        description "enhanced version";
+    }
+    
+    revision 2021-04-23 {
+        description "Initial revision.";
+    }
 
     typedef ip-address {
-      type union {
-        type inet:ipv4-prefix;
-        type inet:ipv6-address;
-      }
+        type union {
+            type inet:ipv4-prefix;
+            type inet:ipv6-address;
+        }
     }
 
-
-  list loopback-service {
-    key name;
-
-    uses ncs:service-data;
-    ncs:servicepoint "loopback-service";
-
-    leaf name {
-      type string {
-         pattern "[a-zA-Z0-9\\-_]+";
-      }
+    list loopback-service {
+        key name;
+        
+        uses ncs:service-data;
+        ncs:servicepoint "loopback-service-servicepoint";
+        
+        leaf name {
+            type string {
+                pattern "[a-zA-Z0-9\\-_]+";
+            }
+        }
+        
+        leaf device {
+            type leafref {
+                path "/ncs:devices/ncs:device/ncs:name";
+            }
+            mandatory true;
+        }
+        
+        leaf id {
+            type uint16{
+                range "0..100";
+            }
+            default "100";
+        }
+        
+        leaf-list address {
+            type ip-address;
+            min-elements 1;
+        }
     }
-
-    leaf device {
-      type leafref {
-        path "/ncs:devices/ncs:device/ncs:name";
-      }
-      mandatory true;
-    }
-
-    leaf id {
-       type uint16{
-        range "0..100";
-       }
-       default "100";
-    }
-
-    leaf-list address {
-      type ip-address;
-      min-elements 1;
-    }
-  }
-
 }
 ```
 
@@ -112,11 +109,7 @@ module loopback-service {
 </config-template>
 ```
 
-- Examine the Python code
-
-```bash
-cisco@ubuntu:~$ cat nso-hands-on/loopback/3_advanced/packages/loopback-service/python/loopback_service/main.py
-```
+- Examine the Python code: ncs-run/packages/loopback-service/python/loopback_service/main.py
 
 ```python
 # -*- mode: python; python-indent: 4 -*-
@@ -175,7 +168,7 @@ class Main(ncs.application.Application):
         # Service callbacks require a registration for a 'service point',
         # as specified in the corresponding data model.
         #
-        self.register_service('loopback-service', ServiceCallbacks)
+        self.register_service('loopback-service-servicepoint', ServiceCallbacks)
 
         # If we registered any callback(s) above, the Application class
         # took care of creating a daemon (related to the service/action point).
@@ -194,7 +187,7 @@ class Main(ncs.application.Application):
 - Make sure no loopback services are configured on NSO instance
 
 ```console
-admin@ncs(config)# no loopback-service *
+admin@ncs(config)# no loopback-service
 admin@ncs(config)# commit
 % No modifications to commit.
 ```
@@ -223,11 +216,7 @@ admin@ncs# packages reload
 >>> No configuration changes can be performed until upgrade has completed.
 >>> System upgrade has completed successfully.
 reload-result {
-    package cisco-ios-cli-6.69
-    result true
-}
-reload-result {
-    package cisco-iosxr-cli-7.33
+    package cisco-ios-cli-6.85
     result true
 }
 reload-result {
@@ -236,16 +225,16 @@ reload-result {
 }
 admin@ncs# 
 System message at 2021-05-03 16:43:26...
-    Subsystem stopped: ncs-dp-5-cisco-ios-cli-6.69:IOSDp
+    Subsystem stopped: ncs-dp-5-cisco-ios-cli-6.85:IOSDp
 admin@ncs# 
 System message at 2021-05-03 16:43:26...
-    Subsystem started: ncs-dp-6-cisco-ios-cli-6.69:IOSDp
+    Subsystem started: ncs-dp-6-cisco-ios-cli-6.85:IOSDp
 ```
 
 - Configure a loopback service
 
 ```console
-admin@ncs(config)# loopback-service loo-1 id 1 device simCPE0 address [ 10.10.10.10/32 ]      
+admin@ncs(config)# loopback-service loo-1 id 1 device simCPE0 address [ 10.10.10.10/32 ]
 admin@ncs(config-loopback-service-loo-1)# commit dry-run
 cli {
     local-node {

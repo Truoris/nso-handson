@@ -35,7 +35,7 @@ module loopback-service {
     key name;
 
     uses ncs:service-data;
-    ncs:servicepoint "loopback-service";
+    ncs:servicepoint "loopback-service-servicepoint";
 
     leaf name {
       type string {
@@ -85,8 +85,7 @@ module loopback-service {
 
 - Examine the updated XML configuration template and update your loopback service
 ```xml
-<config-template xmlns="http://tail-f.com/ns/config/1.0"
-                 servicepoint="loopback-service">
+<config-template xmlns="http://tail-f.com/ns/config/1.0">
   <devices xmlns="http://tail-f.com/ns/ncs">
     <device>
       <name>{/device}</name>
@@ -144,11 +143,7 @@ admin@ncs# packages reload
 >>> No configuration changes can be performed until upgrade has completed.
 >>> System upgrade has completed successfully.
 reload-result {
-    package cisco-ios-cli-6.69
-    result true
-}
-reload-result {
-    package cisco-iosxr-cli-7.33
+    package cisco-ios-cli-6.85
     result true
 }
 reload-result {
@@ -157,10 +152,10 @@ reload-result {
 }
 admin@ncs# 
 System message at 2021-05-04 02:37:48...
-    Subsystem stopped: ncs-dp-8-cisco-ios-cli-6.69:IOSDp
+    Subsystem stopped: ncs-dp-8-cisco-ios-cli-6.85:IOSDp
 admin@ncs# 
 System message at 2021-05-04 02:37:48...
-    Subsystem started: ncs-dp-9-cisco-ios-cli-6.69:IOSDp
+    Subsystem started: ncs-dp-9-cisco-ios-cli-6.85:IOSDp
 ```
 
 - Configure a loopback service
@@ -262,6 +257,18 @@ loopback-service loo-1
  directly-modified devices [ simCPE0 ]
  device-list   [ simCPE0 ]
  plan-location /loopback-service[name='loo-1']
+```
+
+- Observe the device configuration
+
+```console
+ubuntu@nso:~/ncs-run$ ncs-netsim cli-c simCPE0
+simCPE0# show running-config loopback-service loo-1
+interface Loopback1
+ no shutdown
+ ip address 10.10.10.10 255.255.255.255
+ ipv6 address 2001::1
+exit
 ```
 
 ## Advanced Service

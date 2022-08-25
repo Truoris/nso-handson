@@ -91,11 +91,19 @@ for production and system-wide deployment in a central location. The system inst
 
 ### Perform a local installation of NSO
 
+- Download the binaries
+```console
+mkdir sources
+cd sources
+aws s3 cp s3://nso-training-data/ncs-5.8.2-cisco-ios-6.85.2.signed.bin ./
+aws s3 cp s3://nso-training-data/nso-5.8.2.1.linux.x86_64.signed.bin ./
+```
+
 - Install NSO software in a specified directory
 
 Unpack the NSO binary image
 ```
-cisco@ubuntu:~$ sh $HOME/Downloads/nso-5.8.2.1.linux.x86_64.signed.bin
+cisco@ubuntu:~$ sh $HOME/sources/nso-5.8.2.1.linux.x86_64.signed.bin
 Unpacking...
 Verifying signature...
 Retrieving CA certificate from http://www.cisco.com/security/pki/certs/crcam2.cer ...
@@ -109,7 +117,7 @@ Successfully verified the signature of nso-5.5.linux.x86_64.installer.bin using 
 
 Run NSO installer script for Local Installation
 ``` console
-cisco@ubuntu:~$ sh $HOME/Downloads/nso-5.8.2.1.linux.x86_64.installer.bin --local-install $HOME/ncs-5.8.2.1
+cisco@ubuntu:~$ sh $HOME/sources/nso-5.8.2.1.linux.x86_64.installer.bin --local-install $HOME/ncs-5.8.2.1
 INFO  Using temporary directory /tmp/ncs_installer.27656 to stage NCS installation bundle
 INFO  Unpacked ncs-5.5 in /home/cisco/ncs-5.8.2.1
 INFO  Found and unpacked corresponding DOCUMENTATION_PACKAGE
@@ -130,7 +138,8 @@ _Obs. It is recommended to always include the version in the directory name._
 The installation program creates a shell script file named ncsrc in each NSO installation directory, which sets the environment variables. We need to source this file:
 
 ``` console
-cisco@ubuntu:~$ source $HOME/ncs-5.8.2.1/ncsrc
+cd ~
+source $HOME/ncs-5.8.2.1/ncsrc
 ```
 
  You may want to add this sourcing command to your login sequence, such as .consolerc or .profile or .bashrc.
@@ -155,7 +164,7 @@ This will create a ncs-run directory in the home directory, be sure to always st
 - Explore the contents of the ncs-run directory
 
 ``` console
-cisco@ubuntu:~/ncs-run$ ls -l
+cisco@ubuntu:~/$ ls -l ncs-run
 total 36
 drwxrwxr-x 2 cisco cisco  4096 Apr 20 02:25 logs
 drwxrwxr-x 2 cisco cisco  4096 Apr 20 02:25 ncs-cdb
@@ -196,7 +205,8 @@ cisco@ubuntu:~/ncs-run$
 - Unpack Cisco IOSXR NED binary image located in Downloads directory
   
 ``` console
-cisco@ubuntu:~/Downloads$ sh ./ncs-5.8.2-cisco-ios-6.85.1.signed.bin
+cisco@ubuntu:~/ncs-run cd $HOME/sources
+cisco@ubuntu:~/sources sh ./ncs-5.8.2-cisco-ios-6.85.2.signed.bin
 Unpacking...
 Verifying signature...
 Retrieving CA certificate from http://www.cisco.com/security/pki/certs/crcam2.cer ...
@@ -205,18 +215,12 @@ Retrieving SubCA certificate from http://www.cisco.com/security/pki/certs/inners
 Successfully retrieved and verified innerspace.cer.
 Successfully verified root, subca and end-entity certificate chain.
 Successfully fetched a public key from tailf.cer.
-Successfully verified the signature of ncs-5.5-cisco-iosxr-7.33.1.tar.gz using tailf.cer
+Successfully verified the signature of ncs-5.8.2-cisco-ios-6.85.2.tar.gz using tailf.cer
 ```
 
+And copy it in the NSO packages folder.
 ``` console
-cisco@ubuntu:~$ tar -xvf ./Downloads/ncs-5.8.2-cisco-ios-6.85.1.tar.gz -C $HOME/ncs-run/packages/
-cisco-ios-cli-6.85.1/
-cisco-ios-cli-6.85.1/doc/
-cisco-ios-cli-6.85.1/CHANGES
-cisco-ios-cli-6.85.1/load-dir/
-...
-cisco-ios-cli-6.85.1/build-meta-data.xml
-cisco@ubuntu:~$ 
+cisco@ubuntu:~/sources$ cp ncs-5.8.2-cisco-ios-6.85.2.tar.gz ~/ncs-run/packages/
 ```
 
 - Connect to the NSO CLI using the ncs_cli utility
@@ -239,7 +243,7 @@ admin@ncs# packages reload
 >>> No configuration changes can be performed until upgrade has completed.
 >>> System upgrade has completed successfully.
 reload-result {
-    package cisco-iosxr-cli-7.33
+    package cisco-ios-cli-6.85
     result true
 }
 admin@ncs# 
@@ -249,9 +253,13 @@ admin@ncs#
 
 ``` console
 admin@ncs# show packages package oper-status 
-
-NAME                  UP  ERROR
-cisco-ios-cli-6.85.1  X   -        
+                                                                                                      PACKAGE                
+                        PROGRAM                                                                       META     FILE          
+                        CODE     JAVA           PYTHON         BAD NCS  PACKAGE  PACKAGE  CIRCULAR    DATA     LOAD   ERROR  
+NAME                UP  ERROR    UNINITIALIZED  UNINITIALIZED  VERSION  NAME     VERSION  DEPENDENCY  ERROR    ERROR  INFO   
+-----------------------------------------------------------------------------------------------------------------------------
+cisco-ios-cli-6.85  X   -        -              -              -        -        -        -           -        -      -      
+   
 ```
 
 ---
@@ -261,7 +269,8 @@ cisco-ios-cli-6.85.1  X   -
 - Use ncs-netsim tool to create simulated devices based on NED
 
 ``` console
-cisco@ubuntu:~/ncs-run$ ncs-netsim create-network ./packages/cisco-ios-cli-6.85.1 3 simPE
+cisco@ubuntu:~/ncs-run$ cd ~/ncs-run
+cisco@ubuntu:~/ncs-run$ ncs-netsim create-network ./packages/ncs-5.8.2-cisco-ios-6.85.2.tar.gz 3 simPE
 DEVICE simPE0 CREATED
 DEVICE simPE1 CREATED
 DEVICE simPE2 CREATED
@@ -271,7 +280,7 @@ DEVICE simPE2 CREATED
 - Add other devices to the simulated network
 
 ``` console
-cisco@ubuntu:~/ncs-run$ ncs-netsim add-to-network ./packages/cisco-ios-cli-6.85.1 1 simCPE
+cisco@ubuntu:~/ncs-run$ ncs-netsim add-to-network ./packages/ncs-5.8.2-cisco-ios-6.85.2.tar.gz 1 simCPE
 DEVICE simCPE0 CREATED
 ```
 
@@ -304,7 +313,7 @@ cisco@ubuntu:~/ncs-run$ ncs_load -l -m ./netsim-devices.xml
 - Create another Netsim Device to be onboarded
   
 ``` console
-cisco@ubuntu:~/ncs-run$ ncs-netsim add-to-network ./packages/cisco-ios-cli-6.69 1 simCPE
+cisco@ubuntu:~/ncs-run$ ncs-netsim add-to-network ./packages/ncs-5.8.2-cisco-ios-6.85.2.tar.gz 1 simCPE
 DEVICE simCPE1 CREATED
 cisco@ubuntu:~/ncs-run$ ncs-netsim start
 ```
@@ -345,7 +354,7 @@ admin@ncs# config t
 Entering configuration mode terminal
 admin@ncs(config)# devices device simCPE1
 admin@ncs(config-device-simCPE1)# address 127.0.0.1 port 10026
-admin@ncs(config-device-simCPE1)# device-type cli ned-id cisco-ios-cli-6.69 protocol ssh
+admin@ncs(config-device-simCPE1)# device-type cli ned-id cisco-ios-cli-6.85 protocol ssh
 admin@ncs(config-device-simCPE1)# authgroup netsim
 admin@ncs(config-device-simCPE1)# state admin-state unlocked
 admin@ncs(config-device-simCPE1)# commit
@@ -391,13 +400,13 @@ simPE2   127.0.0.1     -            cisco-iosxr-cli-7.33
 - Display devices configuration
 
 ```xml
-admin@ncs# show running-config devices device simCPE0 | display xml
+admin@ncs# show running-config devices device simCPE1 | display xml
 <config xmlns="http://tail-f.com/ns/config/1.0">
   <devices xmlns="http://tail-f.com/ns/ncs">
     <device>
-      <name>simCPE0</name>
+      <name>simCPE1</name>
       <address>127.0.0.1</address>
-      <port>10025</port>
+      <port>10026</port>
       <ssh>
     ...
 ```
@@ -405,8 +414,8 @@ admin@ncs# show running-config devices device simCPE0 | display xml
 - Display devices configuration managed by the NED
 
 ```console
-admin@ncs# show running-config devices device simCPE0 config 
-devices device simCPE0
+admin@ncs# show running-config devices device simCPE1 config 
+devices device simCPE1
  config
   tailfned police cirmode
   no service password-encryption
@@ -428,8 +437,8 @@ devices device simCPE0
 - Display only devices Loopback 0 configuration
 
 ```console
-admin@ncs# show running-config devices device simCPE0 config ios:interface Loopback 0
-devices device simCPE0
+admin@ncs# show running-config devices device simCPE1 config ios:interface Loopback 0
+devices device simCPE1
  config
   interface Loopback0
    ip address 127.0.0.1 255.0.0.0
@@ -444,12 +453,12 @@ devices device simCPE0
 ```console
 admin@ncs# config terminal
 Entering configuration mode terminal
-admin@ncs(config)# devices device simCPE0 config ios:interface Loopback 0
+admin@ncs(config)# devices device simCPE1 config ios:interface Loopback 0
 admin@ncs(config-if)# ip address 100.100.100.100 255.255.255.255
 admin@ncs(config-if)# commit dry-run outformat native
 native {
     device {
-        name simCPE0
+        name simCPE1
         data ! Generated offline
              interface Loopback0
               ip address 100.100.100.100 255.255.255.255
@@ -460,7 +469,7 @@ admin@ncs(config-if)# commit dry-run
 cli {
     local-node {
         data  devices {
-                  device simCPE0 {
+                  device simCPE1 {
                       config {
                           ios:interface {
                               Loopback 0 {
@@ -489,7 +498,7 @@ admin@ncs(config)# commit dry-run
 cli {
     local-node {
         data  devices {
-                  device simCPE0 {
+                  device simCPE1 {
                       config {
                           ios:interface {
                               Loopback 0 {
