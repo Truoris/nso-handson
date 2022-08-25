@@ -77,7 +77,7 @@ For package compilation and development :
 
 All the required packages are already installed.
 
-Connect to **nso** host via SSH doing a right click on nso (in the left panel) then "Open remote SSG terminal"
+Connect to **nso** host via SSH doing a right click on nso (in the left panel) then "Open remote SSH terminal"
 
 There are 2 different types of NSO installation possible:
 
