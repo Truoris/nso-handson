@@ -92,7 +92,8 @@ for production and system-wide deployment in a central location. The system inst
 ### Perform a local installation of NSO
 
 - Download the binaries
-```console
+
+```
 mkdir sources
 cd sources
 aws s3 cp s3://nso-training-data/ncs-5.8.2-cisco-ios-6.85.2.signed.bin ./
