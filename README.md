@@ -103,7 +103,7 @@ aws s3 cp s3://nso-training-data/nso-5.8.2.1.linux.x86_64.signed.bin ./
 - Install NSO software in a specified directory
 
 Unpack the NSO binary image
-```
+```console
 cisco@ubuntu:~$ sh $HOME/sources/nso-5.8.2.1.linux.x86_64.signed.bin
 Unpacking...
 Verifying signature...
