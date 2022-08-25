@@ -2,6 +2,7 @@
 
 - [NSO Hands on lab](#nso-hands-on-lab)
   - [NSO Documentation](#nso-documentation)
+  - [Visual Studio Code Documentation](vscode.md)
   - [NSO Overview](#nso-overview)
     - [Device Manager](#device-manager)
     - [Service Manager](#service-manager)
