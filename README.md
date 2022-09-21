@@ -207,8 +207,8 @@ cisco@ubuntu:~/ncs-run$
 - Unpack Cisco IOSXR NED binary image located in Downloads directory
   
 ``` console
-cisco@ubuntu:~/ncs-run cd $HOME/sources
-cisco@ubuntu:~/sources sh ./ncs-5.8.2-cisco-ios-6.85.2.signed.bin
+cisco@ubuntu:~/ncs-run$ cd $HOME/sources
+cisco@ubuntu:~/sources$ sh ./ncs-5.8.2-cisco-ios-6.85.2.signed.bin
 Unpacking...
 Verifying signature...
 Retrieving CA certificate from http://www.cisco.com/security/pki/certs/crcam2.cer ...
@@ -317,7 +317,7 @@ cisco@ubuntu:~/ncs-run$ ncs_load -l -m ./netsim-devices.xml
 ``` console
 cisco@ubuntu:~/ncs-run$ ncs-netsim add-to-network ./packages/ncs-5.8.2-cisco-ios-6.85.2.tar.gz 1 simCPE
 DEVICE simCPE1 CREATED
-cisco@ubuntu:~/ncs-run$ ncs-netsim start
+cisco@ubuntu:~/ncs-run$ ncs-netsim start simCPE1
 ```
 
 - Note the address and CLI port to access the device
